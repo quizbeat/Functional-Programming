@@ -1,4 +1,5 @@
 (defvar tolerance 0.00001)
+(defconstant start 6.9)
 
 (defun func (x)
     (+ 1 (/ 1 x))
@@ -20,6 +21,6 @@
     )
 )
 
-(defun golden-ratio (x)
-    (fixed-point #'func x)
+(defun golden-ratio ()
+    (funcall #'fixed-point #'func start)
 )
