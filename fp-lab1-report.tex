@@ -1,0 +1,127 @@
+\documentclass[a4paper, 12pt]{article}
+
+\usepackage{fullpage}
+\usepackage{multicol,multirow}
+\usepackage{tabularx}
+\usepackage{ulem}
+\usepackage[utf8]{inputenc}
+\usepackage[russian]{babel}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{listings}
+\usepackage{titlesec}
+\usepackage{listings}
+
+\titleformat{\section}
+  {\normalfont\Large\bfseries}{\thesection.}{0.3em}{}
+
+\titleformat{\subsection}
+  {\normalfont\large\bfseries}{\thesubsection.}{0.3em}{}
+
+\titlespacing{\section}{0pt}{*2}{*2}
+\titlespacing{\subsection}{0pt}{*1}{*1}
+\titlespacing{\subsubsection}{0pt}{*0}{*0}
+
+\lstloadlanguages{Lisp}
+\lstset{extendedchars=false,
+	breaklines=true,
+	breakatwhitespace=true,
+	keepspaces = true,
+	tabsize=2
+}
+\begin{document}
+
+\section*{Отчет по лабораторной работе №\,1 
+\\по курсу \guillemotleft  Функциональное программирование\guillemotright}
+
+\begin{flushright}
+Студент группы 8о-306Б МАИ \textit{Макаров Никита}, \textnumero 11 по списку \\
+\makebox[7cm]{Контакты: {\tt quizbeat@gmail.com} \hfill} \\
+\makebox[7cm]{Работа выполнена: 19.03.2014 \hfill} \\
+\ \\
+Преподаватель: Иванов Дмитрий Анатольевич, доц. каф. 806 \\
+\makebox[7cm]{Отчет сдан: \hfill} \\
+\makebox[7cm]{Итоговая оценка: \hfill} \\
+\makebox[7cm]{Подпись преподавателя: \hfill} \\
+
+\end{flushright}
+
+
+\section{Тема работы}
+Примитивные функции и особые операторы Common Lisp.
+
+
+\section{Цель работы}
+Научиться вводить S-выражения в Lisp-систему, определять переменные и функции, работать с условными операторами, работать с числами, использую схему линейной и древовидной рекурсии.
+
+
+\section{Задание}
+\textit{Золотое сечение} - это число \textit{r}, которое удовлетворяет уравнению
+\(r^{2} = r + 1\). \\Покажите, что золотое сечение \textit{r} есть неподвижная точка трансформации\\ \(f(x) = 1 + \frac{1}{x}\), запрограммировав на языке Common Lisp функцию для вычисления \textit{r} с использованием функционала {\tt fixed-point}.
+
+
+\section{Оборудование студента}
+Процессор Intel Core i5 2\,@\,1.3GHz, память: 4Gb, разрядность системы: 64.
+
+
+\section{Программное обеспечение}
+ОС Mac OS X 10.9, среда Clozure CL 1.10
+
+
+\section{Идея, метод, алгоритм}
+Функция {\tt golden-ratio} с помощью функционала {\tt fixed-point} находит золотое сечение \textit{r}. В {\tt fixed-point} объявляются локальная функция {\tt close-enough-p} и локальная рекурсивная функция {\tt try}, которая проверяет, достаточно ли \(f(x)\) приблизилось к \(x\). Если достаточно, то получен ответ, иначе берется следующее приближение.
+
+
+\section{Сценарий выполнения работы}
+
+
+\section{Распечатка программы и её результаты}
+
+\subsection{Исходный код}
+\begin{lstlisting}
+(defvar tolerance 0.00001)
+(defconstant start 6.9)
+
+(defun func (x)
+    (+ 1 (/ 1 x))
+)
+
+(defun fixed-point (f first-guess)
+    (labels (
+        (close-enough-p (x y)
+            (<= (abs (- x y)) tolerance))
+        (try (guess)
+            (let ((next (funcall f guess)))
+                (if (close-enough-p guess next)
+                    next
+                    (try next)
+                )
+            )
+        ))
+        (try first-guess)
+    )
+)
+
+(defun golden-ratio ()
+    (funcall #'fixed-point #'func start)
+)
+\end{lstlisting}
+
+\subsection{Результаты работы}
+\begin{lstlisting}
+(golden-ratio)
+1.6180363
+\end{lstlisting}
+
+\section{Дневник отладки}
+\begin{tabular}{|c|c|c|c|}
+\hline
+Дата & Событие & Действие по исправлению & Примечание \\
+\hline
+\end{tabular}
+
+
+\section{Замечания, выводы}
+Я получил базовые навыки программирования на функциональном языке Common Lisp, написав несложную программу, вычисляющую золотое сечение. Независимо от начального приближения, программа корректно вычисляет константу \textit{r}.
+
+\end{document}
