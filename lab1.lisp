@@ -22,5 +22,5 @@
 )
 
 (defun golden-ratio ()
-    (funcall #'fixed-point #'func start)
+    (fixed-point #'func start)
 )
