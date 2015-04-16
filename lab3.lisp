@@ -8,8 +8,8 @@
 )
 
 (defmethod radius ((c cart))
-    (sqrt (+ (square (cart-x c))
-             (square (cart-y c))
+    (sqrt (+ (sqr (cart-x c))
+             (sqr (cart-y c))
           )
     )
 )
