@@ -31,3 +31,5 @@
 (defun on-single-line-p (vertices)
   ...)
 ```
+
+## Lab 4 - Вариант 4.44

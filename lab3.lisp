@@ -39,6 +39,19 @@
     )
 )
 
+(defgeneric print-object (obj stream)
+    (:method ((c cart) stream)
+        (format stream "[CART x:~d y:~d]"
+            (cart-x c) (cart-y c)
+        )
+    )
+    (:method ((p polar) stream)
+        (format stream "[POLAR radius:~d angle:~d]"
+            (radius p) (angle p)
+        )
+    )
+)
+
 (defvar tolerance 0.001)
 
 (defun approx-eq (x y)
@@ -67,5 +80,7 @@
 (defvar p2 (make-instance 'cart :x 2 :y 4))
 (defvar p3 (to-polar (make-instance 'cart :x 3 :y 6)))
 (defvar p4 (make-instance 'cart :x 2 :y 2))
+(defvar p5 (make-instance 'polar :radius 42 :angle 1.107111))
 (defvar l1 (list p1 p2 p3))
 (defvar l2 (list p1 p2 p4))
+(defvar l3 (list p1 p2 p5))

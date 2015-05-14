@@ -1,0 +1,120 @@
+\documentclass[a4paper, 12pt]{article}
+
+\usepackage{fullpage}
+\usepackage{multicol,multirow}
+\usepackage{tabularx}
+\usepackage{ulem}
+\usepackage[utf8]{inputenc}
+\usepackage[russian]{babel}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{listings}
+\usepackage{titlesec}
+
+\titleformat{\section}
+  {\normalfont\Large\bfseries}{\thesection.}{0.3em}{}
+
+\titleformat{\subsection}
+  {\normalfont\large\bfseries}{\thesubsection.}{0.3em}{}
+
+\titlespacing{\section}{0pt}{*2}{*2}
+\titlespacing{\subsection}{0pt}{*1}{*1}
+\titlespacing{\subsubsection}{0pt}{*0}{*0}
+\usepackage{listings}
+\lstloadlanguages{Lisp}
+\lstset{extendedchars=false,
+	breaklines=true,
+	breakatwhitespace=true,
+	keepspaces = true,
+	tabsize=2
+}
+
+\begin{document}
+
+\section*{Отчет по лабораторной работе №\,2 
+\\по курсу \guillemotleft  Функциональное программирование\guillemotright}
+
+\begin{flushright}
+Студент группы 8о-306Б МАИ \textit{Макаров Никита}, \textnumero 11 по списку \\
+\makebox[7cm]{Контакты: {\tt quizbeat@gmail.com} \hfill} \\
+\makebox[7cm]{Работа выполнена: 03.04.2015 \hfill} \\
+\ \\
+Преподаватель: Иванов Дмитрий Анатольевич, доц. каф. 806 \\
+\makebox[7cm]{Отчет сдан: \hfill} \\
+\makebox[7cm]{Итоговая оценка: \hfill} \\
+\makebox[7cm]{Подпись преподавателя: \hfill} \\
+
+\end{flushright}
+
+
+\section{Тема работы}
+Простейшие функции работы со списками Common Lisp.
+
+
+\section{Цель работы}
+Научиться конструировать списки, находить элемент в списке, использовать схему линейной и древовидной рекурсии для обхода и реконструкции плоских списков и деревьев.
+
+\section{Задание}
+Запрограммируйте функцию-предикат {\tt tree-similar-p (x y)}, которая принимает два аргумента - дерева, представленных в виде списков атомов. Предикат должен вернуть истину, если одинаковые атомы расположены в списках {\tt х} и {\tt у} в одном и том же порядке при обходе дерева слева направо, т.е. независимо от внутренней структуры {\tt х} и {\tt у}.
+
+\begin{lstlisting}
+(tree-similar-p '(1 (2 (3 4)) 5)) '((1 2) 3 (4 5))) => T
+\end{lstlisting}
+
+
+\section{Оборудование студента}
+Процессор Intel Core i5 2\,@\,1.3GHz, память: 4Gb, разрядность системы: 64.
+
+
+\section{Программное обеспечение}
+ОС Mac OS X 10.9, среда Clozure CL 1.10
+
+
+\section{Идея, метод, алгоритм}
+Так как в задании не нужно учитывать структуру дерева, то можно заметить, что достаточно проверить на эквивалентность списки, представляющие деревья. Но так как списки могут быть вложенными, сначала необходимо избавиться от вложенности. Функция {\tt to-list} раскрывает все вложенные списки, а функция {\tt equal} проверяет эквивалентность двух списков.
+
+
+\section{Сценарий выполнения работы}
+
+
+\section{Распечатка программы и её результаты}
+
+\subsection{Исходный код}
+\begin{lstlisting}
+(defun to-list (tree)
+    (if (null tree)
+        nil
+        (if (atom (first tree))
+            (cons (first tree) (to-list (rest tree)))
+            (append (to-list (first tree)) (to-list (rest tree)))
+        )
+    )
+)
+
+(defun tree-similar-p (tree1 tree2)
+    (equal (to-list tree1) (to-list tree2))
+)
+\end{lstlisting}
+
+
+\subsection{Результаты работы}
+\begin{lstlisting}
+> (tree-similar-p '(1 (2 (3 4)) 5) '((1 2) 3 (4 5)))
+T
+> (tree-similar-p '(1 (2 (3 4)) 5) '((1 2) 3 (5 4)))
+NIL
+> (tree-similar-p '((1 2)) '(1 2))
+T
+> (tree-similar-p '((1) (2)) '((1) 2))
+T
+> (tree-similar-p '(1 (2 (3))) '(((3) 2 ) 1))
+NIL
+\end{lstlisting}
+
+
+\section{Дневник отладки}
+
+\section{Замечания, выводы}
+Выполняя эту лабораторную работу, я познакомился с новыми для меня возможностями языка Common Lisp, получил навыки работы со списками. Списки в Lisp'е довольно мощное средство, и в то же время просты в изучении. С их помощью можно удобно представлять деревья, очень важную структуру данных.
+
+\end{document}
