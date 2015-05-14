@@ -13,42 +13,53 @@
 )
 
 (defgeneric get-angle (arg)
-    (:method ((c cart))
-        (atan (cart-y c) (cart-x c))
-    )
-    (:method ((p polar)) (angle p))
+    (:documentation "returns angle of arg point")
+)
+
+(defmethod get-angle ((c cart))
+    (atan (cart-y c) (cart-x c))
+)
+
+(defmethod get-angle ((p polar))
+    (angle p)
 )
 
 (defgeneric get-radius (arg)
-    (:method ((c cart))
-        (sqrt (+ (square (cart-x c))
-                 (square (cart-y c)))
-        )
+    (:documentation "returns radius of arg point")
+)
+
+(defmethod get-radius ((c cart))
+    (sqrt (+ (square (cart-x c))
+             (square (cart-y c)))
     )
-    (:method ((p polar)) (radius p))
+)
+
+(defmethod get-radius ((p polar))
+    (radius p)
 )
 
 (defgeneric to-polar (arg)
     (:documentation "transformation to polar coordinate system")
-    (:method ((p polar)) p)
-    (:method ((c cart))
-        (make-instance 'polar
-            :radius (get-radius c)
-            :angle (get-angle c)
-        )
+)
+
+(defmethod to-polar ((p polar)) p)
+
+(defmethod to-polar ((c cart))
+    (make-instance 'polar
+        :radius (get-radius c)
+        :angle (get-angle c)
     )
 )
 
-(defgeneric print-object (obj stream)
-    (:method ((c cart) stream)
-        (format stream "[CART x:~d y:~d]"
-            (cart-x c) (cart-y c)
-        )
+(defmethod print-object ((c cart) stream)
+    (format stream "[CART x:~d y:~d]"
+        (cart-x c) (cart-y c)
     )
-    (:method ((p polar) stream)
-        (format stream "[POLAR radius:~d angle:~d]"
-            (radius p) (angle p)
-        )
+)
+
+(defmethod print-object ((p polar) stream)
+    (format stream "[POLAR radius:~d angle:~d]"
+        (radius p) (angle p)
     )
 )
 
@@ -83,4 +94,4 @@
 (defvar p5 (make-instance 'polar :radius 42 :angle 1.107111))
 (defvar l1 (list p1 p2 p3))
 (defvar l2 (list p1 p2 p4))
-(defvar l3 (list p1 p2 p5))
+(defvar l3 (list p1 p2 p3 p5))

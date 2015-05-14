@@ -1,0 +1,207 @@
+\documentclass[a4paper, 12pt]{article}
+
+\usepackage{fullpage}
+\usepackage{multicol,multirow}
+\usepackage{tabularx}
+\usepackage{ulem}
+\usepackage[utf8]{inputenc}
+\usepackage[russian]{babel}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{listings}
+\usepackage{titlesec}
+
+\titleformat{\section}
+  {\normalfont\Large\bfseries}{\thesection.}{0.3em}{}
+
+\titleformat{\subsection}
+  {\normalfont\large\bfseries}{\thesubsection.}{0.3em}{}
+
+\titlespacing{\section}{0pt}{*2}{*2}
+\titlespacing{\subsection}{0pt}{*1}{*1}
+\titlespacing{\subsubsection}{0pt}{*0}{*0}
+\usepackage{listings}
+\lstloadlanguages{Lisp}
+\lstset{extendedchars=false,
+	breaklines=true,
+	breakatwhitespace=true,
+	keepspaces = true,
+	tabsize=2
+}
+
+\begin{document}
+
+\section*{Отчет по лабораторной работе №\,3
+\\по курсу \guillemotleft  Функциональное программирование\guillemotright}
+
+\begin{flushright}
+Студент группы 8о-306Б МАИ \textit{Макаров Никита}, \textnumero 11 по списку \\
+\makebox[7cm]{Контакты: {\tt quizbeat@gmail.com} \hfill} \\
+\makebox[7cm]{Работа выполнена: 17.04.2015 \hfill} \\
+\ \\
+Преподаватель: Иванов Дмитрий Анатольевич, доц. каф. 806 \\
+\makebox[7cm]{Отчет сдан: \hfill} \\
+\makebox[7cm]{Итоговая оценка: \hfill} \\
+\makebox[7cm]{Подпись преподавателя: \hfill} \\
+
+\end{flushright}
+
+
+\section{Тема работы}
+Обобщённые функции, методы и классы объектов.
+
+\section{Цель работы}
+Научиться определять простейшие классы, порождать экземпляры классов, считывать и изменять значения слотов, научиться определять обобщённые функции и методы.
+
+\section{Задание}
+Определить обычную функцию {\tt on-single-line-p} - предикат,
+\begin{itemize}
+\item принимающий в качестве аргумента список точек (радиус-векторов),
+\item возвращающий {\tt T}, если все указанные точки лежат на одной прямой (вычислять с допустимым отклонением {\tt tolerance}).
+\end{itemize}
+Точки могут быть заданы как декартовыми координатами (экземплярами {\tt cart}), так и полярными (экземплярами {\tt polar}).
+
+\begin{lstlisting}
+(defvar *tolerance* 0.001)
+
+(defun on-single-line-p (vertices)
+  ...)
+\end{lstlisting}
+
+
+\section{Оборудование студента}
+Процессор Intel Core i5 2\,@\,1.3GHz, память: 4Gb, разрядность системы: 64.
+
+
+\section{Программное обеспечение}
+ОС Mac OS X 10.9, среда Clozure CL 1.10
+
+
+\section{Идея, метод, алгоритм}
+Очевидно, что точки лежат на одной прямой, если их углы в полярном представлении совпадают. Поэтому будем рекурсивно идти по списку точек, преобразовывать точки в полярную систему координат и сравнивать их углы с учетом погрешности {\tt tolerance}. {\tt on-single-line-p} принимает список точек и возвращает {\tt T}, если функция {\tt on-single-line} от этого же списка точек вернула число. {\tt on-single-line} непосредственно сравнивает точки с помощью функции {\tt approx-eq}, и если на каком-либо сравнении разница углов окажется больше {\tt tolerance}, функция будет возвращать вверх по рекурсии {\tt nil}, и следовательно число возвращено не будет.
+
+\section{Сценарий выполнения работы}
+
+
+\section{Распечатка программы и её результаты}
+
+\subsection{Исходный код}
+\begin{lstlisting}
+(defun square (x) (* x x))
+
+(defclass cart()
+    ((x :initarg :x :accessor cart-x)
+     (y :initarg :y :accessor cart-y)
+    )
+)
+
+(defclass polar()
+    ((radius :initarg :radius :accessor radius)
+     (angle  :initarg :angle  :accessor angle)
+    )
+)
+
+(defgeneric get-angle (arg)
+    (:documentation "returns angle of arg point")
+)
+
+(defmethod get-angle ((c cart))
+    (atan (cart-y c) (cart-x c))
+)
+
+(defmethod get-angle ((p polar))
+    (angle p)
+)
+
+(defgeneric get-radius (arg)
+    (:documentation "returns radius of arg point")
+)
+
+(defmethod get-radius ((c cart))
+    (sqrt (+ (square (cart-x c))
+             (square (cart-y c)))
+    )
+)
+
+(defmethod get-radius ((p polar))
+    (radius p)
+)
+
+(defgeneric to-polar (arg)
+    (:documentation "transformation to polar coordinate system")
+)
+
+(defmethod to-polar ((p polar)) p)
+
+(defmethod to-polar ((c cart))
+    (make-instance 'polar
+        :radius (get-radius c)
+        :angle (get-angle c)
+    )
+)
+
+(defmethod print-object ((c cart) stream)
+    (format stream "[CART x:~d y:~d]"
+        (cart-x c) (cart-y c)
+    )
+)
+
+(defmethod print-object ((p polar) stream)
+    (format stream "[POLAR radius:~d angle:~d]"
+        (radius p) (angle p)
+    )
+)
+
+(defvar tolerance 0.001)
+
+(defun approx-eq (x y)
+    (if (and (numberp x) (numberp y))
+        (<= (abs (- x y)) tolerance)
+        nil
+    )
+)
+
+(defun on-single-line (vertices)
+    (if (= (length vertices) 1)
+        (get-angle (first vertices))
+        (if (approx-eq (get-angle (first vertices))
+                       (on-single-line (rest vertices)))
+            (get-angle (first vertices))
+            nil
+        )
+    )
+)
+
+(defun on-single-line-p (vertices)
+    (numberp (on-single-line vertices))
+)
+
+(defvar p1 (make-instance 'cart :x 1 :y 2))
+(defvar p2 (make-instance 'cart :x 2 :y 4))
+(defvar p3 (to-polar (make-instance 'cart :x 3 :y 6)))
+(defvar p4 (make-instance 'cart :x 2 :y 2))
+(defvar p5 (make-instance 'polar :radius 42 :angle 1.107111))
+(defvar l1 (list p1 p2 p3))
+(defvar l2 (list p1 p2 p4))
+(defvar l3 (list p1 p2 p3 p5))
+
+\end{lstlisting}
+
+
+\subsection{Результаты работы}
+\begin{lstlisting}
+> (on-single-line-p l1)
+T
+> (on-single-line-p l2)
+NIL
+> (on-single-line-p l3)
+T
+\end{lstlisting}
+
+
+\section{Дневник отладки}
+
+\section{Замечания, выводы}
+С помощью данной лабораторной работы я ознакомился с классами и обобщенными функциями в языке Common Lisp. Синтаксис для создания классов довольно прост, с ним было нетрудно разобраться. Обощенные функции играют немаловажную роль. Они позволяют не создавать несколько похожих функций для разных классов, а просто написать реализации одной функции, которая будет применима для нескольких классов.
+
+\end{document}
