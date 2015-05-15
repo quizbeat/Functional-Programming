@@ -6,16 +6,6 @@
     )
 )
 
-(defmethod radius ((c cart))
-    (sqrt (+ (square (cart-x c))
-             (square (cart-y c)))
-    )
-)
-
-(defmethod angle ((c cart))
-    (atan (cart-y c) (cart-x c))
-)
-
 (defclass polar()
     ((radius :initarg :radius :accessor radius)
      (angle  :initarg :angle  :accessor angle)
