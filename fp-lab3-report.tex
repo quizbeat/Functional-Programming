@@ -78,7 +78,11 @@
 
 
 \section{Идея, метод, алгоритм}
-Очевидно, что точки лежат на одной прямой, если их углы в полярном представлении совпадают. Поэтому будем рекурсивно идти по списку точек, преобразовывать точки в полярную систему координат и сравнивать их углы с учетом погрешности {\tt tolerance}. {\tt on-single-line-p} принимает список точек и возвращает {\tt T}, если функция {\tt on-single-line} от этого же списка точек вернула число. {\tt on-single-line} непосредственно сравнивает точки с помощью функции {\tt approx-eq}, и если на каком-либо сравнении разница углов окажется больше {\tt tolerance}, функция будет возвращать вверх по рекурсии {\tt nil}, и следовательно число возвращено не будет.
+Воспользуемся уравнением прямой, проходящей через 2 точки. Если 3 точки лежат на одной прямой, то для них выполняется равенство:
+$$\frac{x_1 - x_2}{x_3 - x_2} = \frac{y_1 - y_2}{y_3 -y_2}.$$
+Чтобы избежать погрешностей при делении, заменим частные на произведения:
+$$(x_1 - x_2)*(y_3 - y_2) = (x_3 - x_2)*(y_1 - y_2).$$
+Функция {\tt on-single-line-p} рекурсивно проверяет выполнение вышеприведенного равенства для всех элементов списка с помощью функции {\tt on-single-line}, если его длина больше трех. Если длина равна трем, то функция {\tt on-single-line} вызывается один раз. Для длины списка равной двум или одному ответ, очевидно, {\tt T}.
 
 \section{Сценарий выполнения работы}
 
@@ -101,43 +105,12 @@
     )
 )
 
-(defgeneric get-angle (arg)
-    (:documentation "returns angle of arg point")
+(defmethod cart-x ((p polar))
+    (* (radius p) (cos (angle p)))
 )
 
-(defmethod get-angle ((c cart))
-    (atan (cart-y c) (cart-x c))
-)
-
-(defmethod get-angle ((p polar))
-    (angle p)
-)
-
-(defgeneric get-radius (arg)
-    (:documentation "returns radius of arg point")
-)
-
-(defmethod get-radius ((c cart))
-    (sqrt (+ (square (cart-x c))
-             (square (cart-y c)))
-    )
-)
-
-(defmethod get-radius ((p polar))
-    (radius p)
-)
-
-(defgeneric to-polar (arg)
-    (:documentation "transformation to polar coordinate system")
-)
-
-(defmethod to-polar ((p polar)) p)
-
-(defmethod to-polar ((c cart))
-    (make-instance 'polar
-        :radius (get-radius c)
-        :angle (get-angle c)
-    )
+(defmethod cart-y ((p polar))
+    (* (radius p) (sin (angle p)))
 )
 
 (defmethod print-object ((c cart) stream)
@@ -155,36 +128,62 @@
 (defvar tolerance 0.001)
 
 (defun approx-eq (x y)
-    (if (and (numberp x) (numberp y))
-        (<= (abs (- x y)) tolerance)
-        nil
-    )
+    (<= (abs (- x y)) tolerance)
 )
 
-(defun on-single-line (vertices)
-    (if (= (length vertices) 1)
-        (get-angle (first vertices))
-        (if (approx-eq (get-angle (first vertices))
-                       (on-single-line (rest vertices)))
-            (get-angle (first vertices))
-            nil
-        )
+(defun on-single-line (v)
+    (approx-eq (* (- (cart-x (first v)) (cart-x (second v)))
+                  (- (cart-y (third v)) (cart-y (second v))))
+               (* (- (cart-x (third v)) (cart-x (second v)))
+                  (- (cart-y (first v)) (cart-y (second v))))
     )
 )
 
 (defun on-single-line-p (vertices)
-    (numberp (on-single-line vertices))
+    (cond
+        ((< (length vertices) 3) T)
+        ((= (length vertices) 3) (on-single-line vertices))
+        ((> (length vertices) 3)
+            (if (on-single-line-p (rest vertices))
+                (on-single-line (list (first vertices)
+                                      (second vertices)
+                                      (third vertices)))
+            )
+        )
+    )
 )
 
+(defun t (v) (on-single-line-p v)) ; fast testing
+
+; tests
 (defvar p1 (make-instance 'cart :x 1 :y 2))
 (defvar p2 (make-instance 'cart :x 2 :y 4))
-(defvar p3 (to-polar (make-instance 'cart :x 3 :y 6)))
-(defvar p4 (make-instance 'cart :x 2 :y 2))
-(defvar p5 (make-instance 'polar :radius 42 :angle 1.107111))
-(defvar l1 (list p1 p2 p3))
-(defvar l2 (list p1 p2 p4))
-(defvar l3 (list p1 p2 p3 p5))
+(defvar p3 (make-instance 'cart :x 3 :y 6))
 
+(defvar p4 (make-instance 'cart :x 0 :y 1))
+(defvar p5 (make-instance 'cart :x 1 :y 1))
+(defvar p6 (make-instance 'cart :x 2 :y 1))
+
+(defvar p7 (make-instance 'cart :x 4 :y 8.0002))
+(defvar p8 (make-instance 'cart :x 5 :y 10.00001))
+(defvar p9 (make-instance 'cart :x 5.0005 :y 10.0001))
+
+(defvar p10 (make-instance 'polar :radius 1 :angle 1))
+(defvar p11 (make-instance 'polar :radius 2 :angle 1))
+(defvar p12 (make-instance 'polar :radius 3 :angle 1))
+(defvar p13 (make-instance 'polar :radius 4 :angle 1.000001))
+
+(defvar l1 (list p1 p2 p3)) ; T
+(defvar l2 (list p1 p2 p4)) ; NIL
+(defvar l3 (list p1 p2 p3 p2 p3 p1)) ; T
+
+(defvar l4 (list p4 p5 p6)) ; T
+(defvar l5 (list p7 p8 p9)) ; T
+(defvar l6 (list p1 p2 p3 p7 p8 p9)) ; T
+
+(defvar l7 (list p10 p11 p12)) ; T
+(defvar l8 (list p10 p11 p12 p13)) ; T
+(defvar l9 (list p10 p11 p12 p13 p1)) ; NIL
 \end{lstlisting}
 
 
@@ -196,10 +195,23 @@ T
 NIL
 > (on-single-line-p l3)
 T
+> (on-single-line-p l4)
+T
+> (on-single-line-p l5)
+T
+> (on-single-line-p l6)
+T
+> (on-single-line-p l7)
+T
+> (on-single-line-p l8)
+T
+> (on-single-line-p l9)
+NIL
 \end{lstlisting}
 
 
 \section{Дневник отладки}
+{\tt 15.05.15} - Исправлен алгоритм.
 
 \section{Замечания, выводы}
 С помощью данной лабораторной работы я ознакомился с классами и обобщенными функциями в языке Common Lisp. Синтаксис для создания классов довольно прост, с ним было нетрудно разобраться. Обощенные функции играют немаловажную роль. Они позволяют не создавать несколько похожих функций для разных классов, а просто написать реализации одной функции, которая будет применима для нескольких классов.
