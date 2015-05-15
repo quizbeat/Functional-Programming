@@ -6,49 +6,28 @@
     )
 )
 
+(defmethod radius ((c cart))
+    (sqrt (+ (square (cart-x c))
+             (square (cart-y c)))
+    )
+)
+
+(defmethod angle ((c cart))
+    (atan (cart-y c) (cart-x c))
+)
+
 (defclass polar()
     ((radius :initarg :radius :accessor radius)
      (angle  :initarg :angle  :accessor angle)
     )
 )
 
-(defgeneric get-angle (arg)
-    (:documentation "returns angle of arg point")
+(defmethod cart-x ((p polar))
+    (* (radius p) (cos (angle p)))
 )
 
-(defmethod get-angle ((c cart))
-    (atan (cart-y c) (cart-x c))
-)
-
-(defmethod get-angle ((p polar))
-    (angle p)
-)
-
-(defgeneric get-radius (arg)
-    (:documentation "returns radius of arg point")
-)
-
-(defmethod get-radius ((c cart))
-    (sqrt (+ (square (cart-x c))
-             (square (cart-y c)))
-    )
-)
-
-(defmethod get-radius ((p polar))
-    (radius p)
-)
-
-(defgeneric to-polar (arg)
-    (:documentation "transformation to polar coordinate system")
-)
-
-(defmethod to-polar ((p polar)) p)
-
-(defmethod to-polar ((c cart))
-    (make-instance 'polar
-        :radius (get-radius c)
-        :angle (get-angle c)
-    )
+(defmethod cart-y ((p polar))
+    (* (radius p) (sin (angle p)))
 )
 
 (defmethod print-object ((c cart) stream)
@@ -66,32 +45,59 @@
 (defvar tolerance 0.001)
 
 (defun approx-eq (x y)
-    (if (and (numberp x) (numberp y))
-        (<= (abs (- x y)) tolerance)
-        nil
-    )
+    (<= (abs (- x y)) tolerance)
 )
 
-(defun on-single-line (vertices)
-    (if (= (length vertices) 1)
-        (get-angle (first vertices))
-        (if (approx-eq (get-angle (first vertices))
-                       (on-single-line (rest vertices)))
-            (get-angle (first vertices))
-            nil
-        )
+(defun on-single-line (v)
+    (approx-eq (* (- (cart-x (first v)) (cart-x (second v)))
+                  (- (cart-y (third v)) (cart-y (second v))))
+               (* (- (cart-x (third v)) (cart-x (second v)))
+                  (- (cart-y (first v)) (cart-y (second v))))
     )
 )
 
 (defun on-single-line-p (vertices)
-    (numberp (on-single-line vertices))
+    (cond
+        ((< (length vertices) 3) T)
+        ((= (length vertices) 3) (on-single-line vertices))
+        ((> (length vertices) 3)
+            (if (on-single-line-p (rest vertices))
+                (on-single-line (list (first vertices)
+                                      (second vertices)
+                                      (third vertices)))
+            )
+        )
+    )
 )
 
+(defun t (v) (on-single-line-p v)) ; fast testing
+
+; tests
 (defvar p1 (make-instance 'cart :x 1 :y 2))
 (defvar p2 (make-instance 'cart :x 2 :y 4))
-(defvar p3 (to-polar (make-instance 'cart :x 3 :y 6)))
-(defvar p4 (make-instance 'cart :x 2 :y 2))
-(defvar p5 (make-instance 'polar :radius 42 :angle 1.107111))
-(defvar l1 (list p1 p2 p3))
-(defvar l2 (list p1 p2 p4))
-(defvar l3 (list p1 p2 p3 p5))
+(defvar p3 (make-instance 'cart :x 3 :y 6))
+
+(defvar p4 (make-instance 'cart :x 0 :y 1))
+(defvar p5 (make-instance 'cart :x 1 :y 1))
+(defvar p6 (make-instance 'cart :x 2 :y 1))
+
+(defvar p7 (make-instance 'cart :x 4 :y 8.0002))
+(defvar p8 (make-instance 'cart :x 5 :y 10.00001))
+(defvar p9 (make-instance 'cart :x 5.0005 :y 10.0001))
+
+(defvar p10 (make-instance 'polar :radius 1 :angle 1))
+(defvar p11 (make-instance 'polar :radius 2 :angle 1))
+(defvar p12 (make-instance 'polar :radius 3 :angle 1))
+(defvar p13 (make-instance 'polar :radius 4 :angle 1.000001))
+
+(defvar l1 (list p1 p2 p3)) ; T
+(defvar l2 (list p1 p2 p4)) ; NIL
+(defvar l3 (list p1 p2 p3 p2 p3 p1)) ; T
+
+(defvar l4 (list p4 p5 p6)) ; T
+(defvar l5 (list p7 p8 p9)) ; T
+(defvar l6 (list p1 p2 p3 p7 p8 p9)) ; T
+
+(defvar l7 (list p10 p11 p12)) ; T
+(defvar l8 (list p10 p11 p12 p13)) ; T
+(defvar l9 (list p10 p11 p12 p13 p1)) ; NIL
