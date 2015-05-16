@@ -7,7 +7,7 @@
             (format t "~a " cell)))
         (format t "~%")))
 
-(defun matrix-1l-2l (n)
+(defun hate-lisp (n)
     (PROG
         ((i 0) (j 0) (value 1) (last (- n 1))) ; local vars
         (setf matrix (make-array (list n n)))
@@ -72,5 +72,3 @@
     )
     matrix
 )
-
-(defun t (x) (mprint (matrix-1l-2l x))) ; fast testing
