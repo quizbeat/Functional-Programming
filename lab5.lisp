@@ -9,18 +9,21 @@
               (concatenate 'string "0 "(princ-to-string (form-to-postfix (second expr))) " -")
               (concatenate 'string "1 " (princ-to-string (form-to-postfix (second expr))) " /")
           )
-          (concatenate 'string (proc-args (rest expr)) " " 
-                       (string-trim "()" (princ-to-string (maplist (lambda (x) (first expr)) (rest (rest expr))))))
+          (concatenate 'string (form-to-postfix (second expr)) " "
+                               (proc-args (first expr) (rest (rest expr))))
       )
       (string-downcase (princ-to-string expr))
   )
 )
 
-(defun proc-args (expr) ;; processes the given arguments
+(defun proc-args (operator expr) ;; processes the given arguments
   (if (not (null expr))
       (if (null (rest expr))
-          (form-to-postfix (first expr))
-          (concatenate 'string (form-to-postfix (first expr)) " " (proc-args (rest expr)))
+          (concatenate 'string (form-to-postfix (first expr)) " " 
+                               (princ-to-string operator)) 
+          (concatenate 'string (form-to-postfix (first expr)) " " 
+                               (princ-to-string operator) " " 
+                               (proc-args operator (rest expr)))
       )
   )
 )

@@ -1,0 +1,146 @@
+\documentclass[a4paper, 12pt]{article}
+
+\usepackage{fullpage}
+\usepackage{multicol,multirow}
+\usepackage{tabularx}
+\usepackage{ulem}
+\usepackage[utf8]{inputenc}
+\usepackage[russian]{babel}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{listings}
+\usepackage{titlesec}
+
+\titleformat{\section}
+  {\normalfont\Large\bfseries}{\thesection.}{0.3em}{}
+
+\titleformat{\subsection}
+  {\normalfont\large\bfseries}{\thesubsection.}{0.3em}{}
+
+\titlespacing{\section}{0pt}{*2}{*2}
+\titlespacing{\subsection}{0pt}{*1}{*1}
+\titlespacing{\subsubsection}{0pt}{*0}{*0}
+\usepackage{listings}
+\lstloadlanguages{Lisp}
+\lstset{extendedchars=false,
+  breaklines=true,
+  breakatwhitespace=true,
+  keepspaces = true,
+  tabsize=2
+}
+
+\begin{document}
+
+\section*{Отчет по лабораторной работе №\,5
+\\по курсу \guillemotleft  Функциональное программирование\guillemotright}
+
+\begin{flushright}
+Студент группы 8о-306Б МАИ \textit{Макаров Никита}, \textnumero 11 по списку \\
+\makebox[7cm]{Контакты: {\tt quizbeat@gmail.com} \hfill} \\
+\makebox[7cm]{Работа выполнена: 22.05.2015 \hfill} \\
+\ \\
+Преподаватель: Иванов Дмитрий Анатольевич, доц. каф. 806 \\
+\makebox[7cm]{Отчет сдан: \hfill} \\
+\makebox[7cm]{Итоговая оценка: \hfill} \\
+\makebox[7cm]{Подпись преподавателя: \hfill} \\
+
+\end{flushright}
+
+
+\section{Тема работы}
+Знаки, строки и символы.
+
+\section{Цель работы}
+Научиться работать с литерами (знаками) и строками при помощи функций обработки строк и общих функций работы с последовательностями, использовать свойства символов.
+
+\section{Задание}
+Запрограммировать на языке Коммон Лисп функцию, принимающую один аргумент - дерево, т.е. список с подсписками, представляющий форму арифметического выражения Lisp. В выражении допустимы только:
+\begin{itemize}
+\item четыре арифметические функции {\tt +}, {\tt -}, {\tt *} и {\tt /} (предусмотреть случай "унарных"\;функций {\tt -} и {\tt /},
+\item символы переменных,
+\item числовые константы.
+\end{itemize}
+Функция должна вернуть строку этого арифметического выражения в постфиксной польской записи.
+
+\begin{lstlisting}
+(form-to-postfix '(+ (* b b) (- (* 4 a c)))) => "b b * 4 a c * +"
+\end{lstlisting}
+
+\section{Оборудование студента}
+Процессор Intel Core i5 2\,@\,1.3GHz, память: 4Gb, разрядность системы: 64.
+
+
+\section{Программное обеспечение}
+ОС Mac OS X 10.9, среда Clozure CL 1.10
+
+
+\section{Идея, метод, алгоритм}
+Небольшое замечание: результат работы функции в примере задания не является корректным выражением в обратной польской записи, так как, во-первых, упущен унарный минус, а во-вторых, недостаточно операторов для обработки выражения.
+
+{\bf Обратная польская нотация} — форма записи математических выражений, в которой операнды расположены перед знаками операций. Также именуется как обратная польская запись, обратная бесскобочная запись, постфиксная нотация и т.п.
+
+Так как требуется перевести арифметическое Lisp-выражение, то будем обрабатывать последовательности вида {\tt (оператор список-операндов)}. В случае, когда длина списка операндов равна 1, оператор является унарным и он обрабатывается довольно просто. Для оператора {\tt /} создается строка вида {\tt ''1 операнд /''}. Для унарного {\tt - } добавляется {\tt 0}, чтобы выразить отрицание и получается строка вида {\tt ''0 операнд -''}. Для обработки нескольких операндов функция {\tt proc-args} рекурсивно создает строку, состоящую из приведенного к постфиксной записи первого элемента списка операндов и результата вызова этой же функции от хвоста списка операндов, добавляя на каждом вызове текущий оператор. Все операнды приводятся к постфиксному виду. Функция {\tt single-arg} проверяет, является ли текущий оператор унарным.
+
+
+\section{Сценарий выполнения работы}
+
+
+\section{Распечатка программы и её результаты}
+
+\subsection{Исходный код}
+\begin{lstlisting}
+(defun single-arg (expr) ;; checks for unary operator
+  (and (not (null expr)) (not (null (rest expr))) (null (rest (rest expr))))
+)
+
+(defun form-to-postfix (expr) 
+  (if (listp expr)
+      (if (single-arg expr)
+          (if (eq (first expr) '- )
+              (concatenate 'string "0 "(princ-to-string (form-to-postfix (second expr))) " -")
+              (concatenate 'string "1 " (princ-to-string (form-to-postfix (second expr))) " /")
+          )
+          (concatenate 'string (form-to-postfix (second expr)) " "
+                               (proc-args (first expr) (rest (rest expr))))
+      )
+      (string-downcase (princ-to-string expr))
+  )
+)
+
+(defun proc-args (operator expr) ;; processes the given arguments
+  (if (not (null expr))
+      (if (null (rest expr))
+          (concatenate 'string (form-to-postfix (first expr)) " " 
+                               (princ-to-string operator)) 
+          (concatenate 'string (form-to-postfix (first expr)) " " 
+                               (princ-to-string operator) " " 
+                               (proc-args operator (rest expr)))
+      )
+  )
+)
+
+(defun t (expr) (form-to-postfix expr))
+\end{lstlisting}
+
+
+\subsection{Результаты работы}
+\begin{lstlisting}
+> (form-to-postfix '(+ (*  b b) (- (* 4 a c))))
+"b b * 0 4 a * c * - +"
+> (form-to-postfix '(* (- 2) (/ 3)))
+"0 2 - 1 3 / *"
+> (form-to-postfix '(+ 7 (* 2 3)))
+"7 2 3 * +"
+> (form-to-postfix '(* (+ (- 2) (* 5 6)) (/ (- 9 3))))
+"0 2 - 5 6 * + 1 9 3 - / *"
+> (form-to-postfix '(+ (- (* (/ a) 2 c 4) e 5 g) 7 i))
+"1 a / 2 * c * 4 * e - 5 - g - 7 + i +"
+\end{lstlisting}
+
+
+\section{Дневник отладки}
+
+\section{Замечания, выводы}
+В языке Common Lisp есть неплохие средства для работы со строками и символами, такие как конкатенация, удаление заданных символов, проверка совпадений, поиск и прочие. Применив рекурсию и некоторые из упомянутых выше функции можно легко реализовать программу, преобразовывающую арифметическое выражение в какую-либо нотацию. В данной лабораторной работе производится преобразование в обратную польскую нотацию, которая немного напоминает запись Lisp-выражений, но располагает операторы справа от операндов.
+
+\end{document}
